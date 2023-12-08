@@ -103,21 +103,17 @@ while True:
     received_text = receive_data()
     received_text_arr = json.loads(received_text)
     print(received_text_arr)
+    # ここで関数に飛んで抜けてしまってない??
     command_handler(received_text_arr)
-    break  # exitが入力されたら通信終わる。これはおまけ。
+    if received_text_arr[-1] == "break":
+        break
 ######## received text##########
 
+
 # close
-while True:
-    user_input = input("Enter 'exit' to close connection: ")
-    if user_input.lower() == "exit":
-        # ユーザーが 'exit' と入力した場合、通信を終了する
-        # ここに通信を終了するためのコードを追加する
-        break  # 通信を終了するためループから抜ける
-    client_socket.close()
-    server_socket.close()
+client_socket.close()
+server_socket.close()
 
 
-#########
-# - createの後にjoinコマンドを打ったら機能していない->ループが機能していない
-# - createコマンドの中身を実装していく
+##### やる事####
+# - createコマンドのlogicを実装していく

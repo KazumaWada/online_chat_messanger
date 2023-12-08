@@ -44,6 +44,7 @@ def receive_data_handler(hashmap):
 while True:
 
     # send
+    # こっちは送信と受信をし続けている。serverは受信と送信をし続けているか?
     send_chat_message = input(
 
         '/////////////////////////////////////////////////\
