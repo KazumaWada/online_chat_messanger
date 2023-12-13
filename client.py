@@ -48,7 +48,7 @@ while True:
     send_chat_message = input(
 
         '/////////////////////////////////////////////////\
-    \n- create room->[room name,message-size,message,create \
+    \n- create room->[room name,message-size,initial message to chatroom,create \
     \n- join room->[room,user_name,join]\
     \n- text to room->[message,send]\
     \n- type"help"  if you want to know how this works:\

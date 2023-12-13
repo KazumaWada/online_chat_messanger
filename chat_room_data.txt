@@ -1,0 +1,7 @@
+Python Chat:
+  Alice: Alice
+  Bob: Bob
+  Charlie: Charlie
+General Chat:
+  David: David
+  Eva: Eva

@@ -2,7 +2,9 @@ from email import message
 import socket
 import json
 from unicodedata import name
-from urllib import response  # 配列を送信するため
+from urllib import response
+
+from playground import find_data  # 配列を送信するため
 
 # サーバーのホストとポート
 server_host = '0.0.0.0'
@@ -34,47 +36,118 @@ def receive_data(buffer_size=1024):
     return client_socket.recv(buffer_size).decode()
 
 
-chat_rooms = {}
+class ChatRoom:
+    # ここのchatroomにどのユーザーがいるか知るために、
+    # chatroom class内にUserを入れた方が良いと思う。
+    def __init__(self, name):
+        self.name = name
+        self.users = {}
+
+    def add_user(self, user):
+        # user.name->class User.nameから来ている。
+        self.users[user.name] = user
+        # self.users{admin:"admin"}
+
+    def get_user(self, name):
+        # hashmapのget
+        return self.users.get(name)
+
+
+class User:
+    def __init__(self, name):
+        self.name = name
+
+# # 新しいチャットルームを作成
+# python_chat = ChatRoom("Python Chat")
+
+# # ユーザーを作成
+# user1 = User("Alice")
+# user2 = User("Bob")
+
+# # ユーザーをチャットルームに追加
+# python_chat.add_user(user1)
+# python_chat.add_user(user2)
+
+# # チャットルームからユーザーを取得して表示
+# found_user = python_chat.get_user("Alice")
+# if found_user:
+#     print(f"User found: {found_user.username}")
+# else:
+#     print("User not found")
+
+
+def find_data(data):
+    file_path = "chatroom_data.txt"
+
+    # テキストデータを読み取って、辞書形式に変換する
+    hashmap = {}
+    with open(file_path, "r") as file:
+        for line in file:
+            # 空白を削除
+            # 1行だからhashmapを1行にして書く必要がある
+            line = line.strip()
+            if line:
+                room, user, user_string = line.split(":")
+                # まだ空白があるらしいから削除
+                room = room.strip()
+                user = user.strip()
+                user_string = user_string.strip()
+                # 部屋が存在しなかったら辞書に登録
+                if room not in hashmap:
+                    hashmap[room] = {}
+                # key, value = user.strip()
+                key, value = user, user_string
+                hashmap[room][key] = value
+
+    # JSON形式に変換する
+    json_data = json.dumps(hashmap, indent=2)
+    json_data = json.loads(json_data)
+    # if json_data[room_name] == exit
+
+    # JSONデータを出力する
+    # print(json_data)
+    # print(json_data["good_room"]["admin"])  # {'admin': 'admin'}
+    if json_data[data]:
+        return True
+    else:
+        return False
 
 
 def command_handler(command_arr):
     last_arr = command_arr[-1]
     store_data = "store_data.txt"
     target = command_arr[0]
-    hashmap_data = {}
+    hashmap_message_data = {}
+    hashmap_room_data = {}
+    hashmap_user_data = {}
+
     ## create ##
     if last_arr == "create":
-        print("last arr is create")
-        with open(store_data, 'a') as room_data:  # 'a' モードでファイルを開くことで追記モードになる
-            room_data.write(f'\n{command_arr[0]}')
-        # これすでにファイル内に書かれてから実行されるから、必ずif foundが実行される
-        with open(store_data, "r") as stored_room_data:
-            found = any(target in line for line in stored_room_data)
-            if found:
-                print(f"{target} found")
-            else:
-                print(f"room:{command_arr[0]} doesnot exist")
-                # send_data(f'you joined {command_arr[0]} Lets chat!')
-                # send to client あとinput()も作る
-                print("room created!")
-        # send to client
-        message = f"{command_arr[0]} created. message from server.py"
-        hashmap_data["create"] = message
-        # send_data(json.dumps(hashmap_data))
+        room_name = command_arr[0]
+        admin = "admin"
+
+        # validation
+
+        # def store_chatroom_data(room_name):
+        with open("chatroom_data.txt", 'a') as chatroom_data:  # 'a' モードでファイルを開くことで追記モードになる
+            chatroom_data.write(f'\n{room_name}: {admin}: admin\n')
+        message = (
+            f"room {room_name} created you are "
+            f"admin. message from server.py"
+        )
+        hashmap_message_data["create"] = message
 
     ## join ##
+    # [room,user_name,join]
     elif last_arr == "join":
-        chat_room_name = command_arr[0]
+        chatroom_name = command_arr[0]
         user = command_arr[1]
-        print("join!")
 
-        with open(store_data, "r") as stored_room_data:
-            found = any(target in line for line in stored_room_data)
-            if found:
-                message = f"{user} successfuly joined {target}!"
-                hashmap_data["join"] = message
-            else:
-                print(f"room:{chat_room_name} doesnot exist")
+        if find_data(chatroom_name):
+            message = f"{user} successfuly joined {target}!"
+            hashmap_message_data["join"] = message
+        else:
+            print(f"room:{chatroom_name} doesnot exist")
 
     ## send ##
     elif last_arr == "send":
@@ -92,7 +165,7 @@ def command_handler(command_arr):
         print("tf?")
 
     # {"create":message, "join":something,"help":something ~}
-    send_data(json.dumps(hashmap_data))
+    send_data(json.dumps(hashmap_message_data))
 
 ####### command_handle ######################
 
@@ -105,7 +178,7 @@ while True:
     print(received_text_arr)
     # ここで関数に飛んで抜けてしまってない??
     command_handler(received_text_arr)
-    if received_text_arr[-1] == "break":
+    if received_text_arr[-1] == "exit":
         break
 ######## received text##########
 
@@ -116,4 +189,6 @@ server_socket.close()
 
 
 ##### やる事####
-# - createコマンドのlogicを実装していく
+# 続き
+# joinのvalidationができた!!!
+# joinのlogicを作っていく。->まず、userを.txtのデータに追加する
