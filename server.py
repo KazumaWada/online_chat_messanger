@@ -56,37 +56,36 @@ def handle_client(client_socket, addr):
         # ユーザー名を辞書に追加
         # ここを全員格納するのではなく、room名と紐付けて格納する必要がある
         clients[client_socket] = (user.name, room.name)
-
+        print("before while true")
         ## 2回目のrecv##
         while True:
-            # 多分送ってくる配列と取得する配列が違う??
+            print("inside of while")
             message = client_socket.recv(1024).decode('utf-8')
-            print(message[0])
-            if not message[0]:
+            message_arr = json.loads(message)
+            # 多分送ってくる配列と取得する配列が違う??
+
+            if not message_arr[0]:
                 print("no message")
                 # クライアントが切断された場合
                 remove_client(client_socket)
                 break
             else:
-
+                print("inside of while/whie true/else")
                 for client_sock, (username_client, roomname_client) in clients.items():
                     # 同じ部屋かつ違うユーザー(ソケット)
                     if roomname_client == room.name and client_sock != client_socket:
-                        message_data = {f"{user.name} said": message[0]}
-                        # message_data = {f"{user.name} said": message}
-                        # {"room": roomname_client, "username": username_client, "message": message})
-                        # json.dumps: 配列を文字列として取得
-                        # ってことはここも配列にしてjsonにして送る必要がある?
-                        client_sock.send(message_data.encode('utf-8'))
+                        message_data = {f"{user.name} said": message_arr[0]}
+                        client_sock.send(json.dumps(
+                            message_data).encode('utf-8'))
 
                 # クライアント自身にも送信する
-                message_data_to_myself = {f"You said": message}
-                # client_socket.send(message_data_to_myself.encode('utf-8'))
-                client_socket.send(message_data_to_myself.encode('utf-8'))
+                message_data_to_myself = {f"You said": message_arr[0]}
+                client_socket.send(json.dumps(
+                    message_data_to_myself).encode('utf-8'))
 
     except:
         print("error")
-        # remove_client(client_socket)
+        remove_client(client_socket)
 
 
 def remove_client(client_socket):
@@ -108,8 +107,7 @@ def remove_client(client_socket):
 # handle_clientを呼び出しマルチスレッドで待ち受ける
 while True:
     client_socket, addr = server.accept()
-    # clients[client_socket] = None  # 初期値としてNoneを設定
-    clients[client_socket] = ("", "")  # 初期値としてNoneを設定
+    clients[client_socket] = ("", "")  # 初期値
 
     # 各クライアントごとにスレッドを起動
     client_thread = threading.Thread(
@@ -125,12 +123,3 @@ while True:
 # % roomname messageでサーバに送信する
 # ↑送信する前に、そのclientがその部屋に参加しているか確認する
 ##########################################
-
-# 続き
-# messageの表示(~said / /)の"/"を削除して自然な文章にする
-# ↓
-# データを送るときにjsonに変換する必要がある。その書き方が一貫していないからエラーが起こると思う。
-# ルール
-# データは文字列でも配列でも必ず配列のように書いてjsonにして送る。
-# 文字列の場合は["message" : message]というようにして送る
-# 取得するときは文字列の場合はvalue[0]で取得できる。

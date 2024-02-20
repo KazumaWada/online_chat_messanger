@@ -12,17 +12,8 @@ client.connect((HOST, PORT))
 
 # username,roomname,messageを入力してサーバーに送信
 # ユーザーから入力を受け取り、JSON形式に変換して送信
-# "roomA"と" roomA"でも一緒にする必要があるから、空欄を削除する必要がある。
-# username, roomname = input(
-#     "Enter your username, room name: or message ").split(',')
 user_input = input(
     "Enter your username, room name: or message ").split(',')
-# 空欄を削除する必要がある。
-
-
-# ここをusername,roomname2つの場合、mesage1つの場合に分けてsendすればいいのか。
-# そしたら2回連続でusername,roomnameを提供した場合エラーを吐かせる必要がある。
-# サーバー側でも1つか2つかを判断させる必要がある。
 
 username = user_input[0].strip()
 roomname = user_input[1].strip()
@@ -47,16 +38,9 @@ def receive():
 # ユーザーの入力をサーバーに送信する関数
 
 
-# def send():
-#     while True:
-#         message = input()
-#         client.send(message.encode('utf-8'))
 def send():
     while True:
-        # user_input = input("Enter your message: ")
-        user_input = input("")
-        # if user_input.lower() == 'exit':
-        #     break
+        user_input = input("message: ")
         message_data = [{"message": user_input}]
         client.send(json.dumps(message_data).encode('utf-8'))
 
