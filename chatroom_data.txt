@@ -1,2 +1,0 @@
-good_room: admin: admin
-oneline: admin: admin
